@@ -1,0 +1,9 @@
+{
+  "name": "ksa-payment-server",
+  "version": "1.0.0",
+  "description": "Square card-capture endpoint for KSA at UVA (Namecheap cPanel Node.js app).",
+  "main": "app.js",
+  "scripts": { "start": "node app.js" },
+  "engines": { "node": ">=10" },
+  "dependencies": { "express": "^4.18.2" }
+}
