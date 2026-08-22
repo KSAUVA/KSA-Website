@@ -17,7 +17,6 @@ const config = {
   GCAL_CAL_ID:
     env.REACT_APP_GCAL_CAL_ID ||
     "16d193ff4d2f291421e7cfeeaf0cb1d742244952b05d33278d8feb7c22fb18a7@group.calendar.google.com",
-
   // Square Web Payments (Merch checkout + hidden POS register)
   SQUARE_APP_ID: env.REACT_APP_SQUARE_APP_ID || "",
   SQUARE_LOCATION_ID: env.REACT_APP_SQUARE_LOCATION_ID || "",
@@ -46,6 +45,9 @@ const config = {
 
   // Public asset base (CRA serves /public at PUBLIC_URL)
   PUB: process.env.PUBLIC_URL || "",
+
+    POPUP_SHEET_CSV: env.REACT_APP_POPUP_SHEET_CSV || ls("ksa_popup_sheet") || "",
+    POPUP_BANNER_ID: env.REACT_APP_POPUP_BANNER_ID || ls("ksa_popup_banner") || "",
 };
 
 export default config;

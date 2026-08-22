@@ -4,6 +4,7 @@ import { useReveal, useParallax, useCountdown, CountUp, KEXPO_DATE } from "../li
 import { useGCalEvents } from "../lib/data";
 import { Ico } from "../lib/icons";
 import config from "../config";
+import HomePopup from "../components/HomePopup";
 
 function HomeHero() {
   const bgRef = useRef(null);
@@ -11,6 +12,7 @@ function HomeHero() {
   const cd = useCountdown(KEXPO_DATE);
   return (
     <section className="hero">
+        <HomePopup />
       <div className="hero__bgwrap"><div className="hero__bg" ref={bgRef} /></div>
       <div className="hero__veil" />
       <div className="wrap hero__inner">
@@ -79,6 +81,7 @@ function HomeHero() {
         @media (max-width: 700px) { .hero { padding: 90px 0 140px; min-height: 86vh; } .hero__stats { gap: 26px; } .hero__stat .num { font-size: 1.7rem; } .hero__countdown .hc-label { display: none; } }
       `}</style>
     </section>
+
   );
 }
 

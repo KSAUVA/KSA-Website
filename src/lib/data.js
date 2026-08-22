@@ -4,7 +4,7 @@ import config from "../config";
 
 /* ---------------- Google Calendar ---------------- */
 export const GCAL_ADD_URL =
-  "https://calendar.google.com/calendar/u/0/r?cid=MTZkMTkzZmY0ZDJmMjkxNDIxZTdjZmVlYWYwY2IxZDc0MjI0NDk1MmIwNWQzMzI3OGQ4ZmViN2MyMmZiMThhN0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t";
+    "https://calendar.google.com/calendar/u/0/r?cid=YjYzNzMyZjA1YTk0Y2JiZDliOWI0MjNkZjBjYTRhYjRhY2NkOTU1YTI3MDljYTJhMWZjMTBkNzRkNmRkOGEwMUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t";
 
 export function tagFor(s = "") {
   s = s.toLowerCase();
@@ -15,10 +15,53 @@ export function tagFor(s = "") {
   return "Event";
 }
 
+/* ---------------- Homepage Popup (Sheet + Drive banner) ---------------- */
+export function usePopupEvent() {
+    const [state, setState] = useState({ event: null, loading: true });
+    useEffect(() => {
+        const csv = config.POPUP_SHEET_CSV;
+        if (!csv) { setState({ event: null, loading: false }); return; }
+        let alive = true;
+        fetch(csv)
+            .then((r) => r.text())
+            .then((t) => {
+                if (!alive) return;
+                const rows = parseCSV(t).filter((rw) => rw.some((c) => c && c.trim()));
+                if (rows.length < 2) { setState({ event: null, loading: false }); return; }
+                const head = rows[0].map((h) => h.trim().toLowerCase());
+                const col = (n) => head.findIndex((h) => h.includes(n));
+                const r = rows[1];
+                const g = (n) => { const i = col(n); return i >= 0 ? (r[i] || "").trim() : ""; };
+                const banner = `${config.PUB}/banner.webp`;
+                setState({
+                    event: {
+                        title: g("title"),
+                        date: g("date"),
+                        time: g("time"),
+                        loc: g("location"),
+                        rsvp: g("rsvp"),
+                        banner,
+                    },
+                    loading: false,
+                });
+            })
+            .catch(() => { if (alive) setState({ event: null, loading: false }); });
+        return () => { alive = false; };
+    }, []);
+    return state;
+}
+
 export function mapGCalEvent(e) {
-  const startISO = (e.start && (e.start.dateTime || e.start.date)) || "";
-  const d = new Date(startISO);
-  const allDay = !!(e.start && e.start.date && !e.start.dateTime);
+    const startISO = (e.start && (e.start.dateTime || e.start.date)) || "";
+    const allDay = !!(e.start && e.start.date && !e.start.dateTime);
+    let d;
+    if (allDay) {
+        const [y, m, day] = startISO.split("-").map(Number);
+        d = new Date(y, m - 1, day);
+    } else {
+        d = new Date(startISO);
+    }
+
   const title = e.summary || "Untitled Event";
   const tag = tagFor(title + " " + (e.description || ""));
   const text = (e.description || "").replace(/<[^>]*>/g, "").trim();

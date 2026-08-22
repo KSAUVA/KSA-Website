@@ -43,10 +43,6 @@ export default function Footer() {
         </div>
         <div className="footer__bottom">
           <span>© {new Date().getFullYear()} Korean Student Association at UVA. Built by KSA Webmasters.</span>
-          <span className="footer__staff">
-            <Link to="/pos" title="Sales team register">Staff register</Link>
-            <i>·</i> Made with 정 in Charlottesville
-          </span>
         </div>
       </div>
     </footer>

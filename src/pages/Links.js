@@ -1,68 +1,147 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useReveal } from "../lib/ui";
 import { Ico } from "../lib/icons";
-import config from "../config";
 
-const SQUARE_DUES_URL = config.SQUARE_PAYMENT_LINK || "https://square.link/u/ksauva";
+const SHEET_ID = "1ex5lO23kY3fX041FqWXt8WzKHJXfBTSwpw3jN43XerI";
 
-const LINK_SECTIONS = [
-  { cat: "General", han: "일반", links: [
-    { t: "General Body Calendar", d: "Add the KSA calendar to your Google account.", u: "https://calendar.google.com/calendar/embed?src=16d193ff4d2f291421e7cfeeaf0cb1d742244952b05d33278d8feb7c22fb18a7%40group.calendar.google.com&ctz=America%2FNew_York" },
-    { t: "New Member Form", d: "First time joining? Start here.", u: "https://forms.gle/mjsADGCEnfg2wFsB7" },
-    { t: "Returning Member Form", d: "Back for another year — welcome!", u: "https://forms.gle/84u4dcXTzm3XLP887" },
-  ]},
-  { cat: "Payments", han: "회비", links: [
-    { t: "Pay Dues with Square", d: "Card, Apple Pay & Google Pay · secure checkout", u: SQUARE_DUES_URL, primary: true },
-    { t: "Venmo", d: "@ksa_uva", u: "https://venmo.com/u/ksa_uva" },
-    { t: "Zelle", d: "bonnykoo@gmail.com", u: "mailto:bonnykoo@gmail.com" },
-  ]},
-  { cat: "Sports", han: "스포츠", links: [
-    { t: "TFT Tournament", d: "Teamfight Tactics tournament signup.", u: "https://forms.gle/KnmJY2aSXs1yqkYz5" },
-    { t: "IM Interest Form", d: "Intramural sports interest form.", u: "https://docs.google.com/forms/d/e/1FAIpQLSdTAWOW-AFwkYhuBh5JKW8IefwlwON5iptuSSbS9REWalh0aw/viewform" },
-  ]},
-  { cat: "Culture", han: "문화", links: [
-    { t: "K-EXPO Internal Act Form", d: "Interest form for internal K-EXPO acts.", u: "https://forms.gle/UDNGkbipeafRSNjV7" },
-    { t: "K-EXPO External Act Form", d: "Interest form for external K-EXPO acts.", u: "https://forms.gle/pfGojwy8Kbf1HVuV9" },
-  ]},
-  { cat: "PR", han: "홍보", links: [
-    { t: "Merch Order Form", d: "Order KSA merchandise.", u: "https://forms.gle/kWvHG2VgFQd73Mtc6" },
-  ]},
+// Tabs in the order they should appear. Only tabs with >=1 link render.
+// Add a new tab here (exact tab name) and it shows up automatically.
+const TABS = [
+    { tab: "General", han: "일반" },
+    { tab: "Payment", han: "회비" },
+    { tab: "Social", han: "소셜" },
+    { tab: "Fundraising", han: "모금" },
+    { tab: "Internal", han: "내부" },
+    { tab: "PR", han: "홍보" },
+    { tab: "Sports", han: "스포츠" },
+    { tab: "Culture", han: "문화" },
+    { tab: "Culinary", han: "요리" },
+    { tab: "Historian", han: "기록" },
 ];
 
+const csvUrl = (tab) =>
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+
+// Minimal RFC-4180-ish CSV parser: handles quoted fields, commas, and
+// escaped double-quotes ("") inside quotes.
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+            if (c === '"') {
+                if (text[i + 1] === '"') { field += '"'; i++; }
+                else inQuotes = false;
+            } else field += c;
+        } else if (c === '"') {
+            inQuotes = true;
+        } else if (c === ",") {
+            row.push(field); field = "";
+        } else if (c === "\n") {
+            row.push(field); rows.push(row); row = []; field = "";
+        } else if (c === "\r") {
+            // ignore, handled by \n
+        } else field += c;
+    }
+    // last field/row
+    if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+    return rows;
+}
+
+const truthy = (v) => /^(y|yes|x|1|true|primary)$/i.test((v || "").trim());
+
+// Turn a tab's raw rows into link objects. Assumes a header row.
+function rowsToLinks(rows) {
+    if (!rows.length) return [];
+    // Drop header (Link / Link Name / Link Description / Primary)
+    const body = rows.slice(1);
+    return body
+        .map((r) => ({
+            u: (r[0] || "").trim(),
+            t: (r[1] || "").trim(),
+            d: (r[2] || "").trim(),
+            primary: truthy(r[3]),
+        }))
+        .filter((l) => l.u && l.t); // skip empty rows
+}
+
 export default function Links() {
-  useReveal();
-  return (
-    <div className="page">
-      <section className="lhero">
-        <div className="pattern" style={{ opacity: 0.1 }} />
-        <div className="wrap" style={{ position: "relative", textAlign: "center" }}>
-          <span className="eyebrow eyebrow--light reveal"><i className="kicker-dot" />Quick links<span className="han">링크</span></span>
-          <h1 className="h-display reveal d1" style={{ margin: "18px auto 16px" }}>Everything in one place.</h1>
-          <p className="lead reveal d2" style={{ color: "#D6DEF2", maxWidth: 480, margin: "0 auto" }}>All the forms, calendars, and payments you need — no more digging through Instagram bios.</p>
-        </div>
-      </section>
+    useReveal();
+    const [sections, setSections] = useState([]);
+    const [status, setStatus] = useState("loading"); // loading | ready | error
 
-      <section className="section">
-        <div className="wrap" style={{ maxWidth: 960 }}>
-          {LINK_SECTIONS.map((s) => (
-            <div className="l-section" key={s.cat}>
-              <div className="l-cat reveal"><h2>{s.cat}</h2><span className="l-han">{s.han}</span><span className="l-line" /></div>
-              <div className="l-grid">
-                {s.links.map((l, i) => (
-                  <a href={l.u} target="_blank" rel="noreferrer" className={"l-card reveal d" + ((i % 4) + 1) + (l.primary ? " l-card--primary" : "")} key={l.t}>
-                    <div className="l-card-top"><span className="l-ico">{l.primary ? Ico.card({ width: 18, height: 18 }) : Ico.ext({ width: 18, height: 18 })}</span></div>
-                    <h4 style={{ margin: "14px 0 6px", fontSize: "1.05rem" }}>{l.t}</h4>
-                    <p className="text-muted" style={{ margin: 0, fontSize: "0.88rem", whiteSpace: "pre-line" }}>{l.d}</p>
-                    <span className="l-go">{l.primary ? "Pay now" : "Open link"} {Ico.arrow({ width: 14, height: 14 })}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const results = await Promise.all(
+                    TABS.map(async (t) => {
+                        try {
+                            const res = await fetch(csvUrl(t.tab));
+                            if (!res.ok) return { ...t, links: [] };
+                            const text = await res.text();
+                            return { ...t, links: rowsToLinks(parseCSV(text)) };
+                        } catch {
+                            return { ...t, links: [] };
+                        }
+                    })
+                );
+                if (cancelled) return;
+                const filled = results.filter((s) => s.links.length > 0);
+                setSections(filled);
+                setStatus(filled.length ? "ready" : "error");
+            } catch {
+                if (!cancelled) setStatus("error");
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
-      <style>{`
+    return (
+        <div className="page">
+            <section className="lhero">
+                <div className="pattern" style={{ opacity: 0.1 }} />
+                <div className="wrap" style={{ position: "relative", textAlign: "center" }}>
+                    <span className="eyebrow eyebrow--light reveal"><i className="kicker-dot" />Quick links<span className="han">링크</span></span>
+                    <h1 className="h-display reveal d1" style={{ margin: "18px auto 16px" }}>Everything in one place.</h1>
+                    <p className="lead reveal d2" style={{ color: "#D6DEF2", maxWidth: 480, margin: "0 auto" }}>All the forms, calendars, and payments you need — no more digging through Instagram bios.</p>
+                </div>
+            </section>
+
+            <section className="section">
+                <div className="wrap" style={{ maxWidth: 960 }}>
+                    {status === "loading" && (
+                        <p className="text-muted" style={{ textAlign: "center", padding: "40px 0" }}>Loading links…</p>
+                    )}
+
+                    {status === "error" && (
+                        <p className="text-muted" style={{ textAlign: "center", padding: "40px 0" }}>
+                            Couldn’t load the links right now. Please refresh, or check back in a minute.
+                        </p>
+                    )}
+
+                    {status === "ready" && sections.map((s) => (
+                        <div className="l-section" key={s.tab}>
+                            <div className="l-cat reveal"><h2>{s.tab}</h2><span className="l-han">{s.han}</span><span className="l-line" /></div>
+                            <div className="l-grid">
+                                {s.links.map((l, i) => (
+                                    <a href={l.u} target="_blank" rel="noreferrer" className={"l-card reveal d" + ((i % 4) + 1) + (l.primary ? " l-card--primary" : "")} key={l.t + i}>
+                                        <div className="l-card-top"><span className="l-ico">{l.primary ? Ico.card({ width: 18, height: 18 }) : Ico.ext({ width: 18, height: 18 })}</span></div>
+                                        <h4 style={{ margin: "14px 0 6px", fontSize: "1.05rem" }}>{l.t}</h4>
+                                        <p className="text-muted" style={{ margin: 0, fontSize: "0.88rem", whiteSpace: "pre-line" }}>{l.d}</p>
+                                        <span className="l-go">{l.primary ? "Pay now" : "Open link"} {Ico.arrow({ width: 14, height: 14 })}</span>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <style>{`
         .lhero { background: var(--ink); color: #fff; padding: 140px 0 80px; position: relative; overflow: hidden; }
         .lhero::after { content: ""; position: absolute; inset: 0; background: radial-gradient(800px 360px at 50% 0%, rgba(10,63,168,0.5), transparent 60%), radial-gradient(700px 320px at 50% 130%, rgba(205,46,58,0.42), transparent 60%); }
         .lhero .wrap { z-index: 1; }
@@ -87,6 +166,6 @@ export default function Links() {
         @media (max-width: 820px) { .l-grid { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 520px) { .l-grid { grid-template-columns: 1fr; } }
       `}</style>
-    </div>
-  );
+        </div>
+    );
 }
