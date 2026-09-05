@@ -4,8 +4,8 @@ import { Ico } from "../lib/icons";
 import config from "../config";
 
 const JOIN_FORMS = {
-  new: { label: "New Member", blurb: "First time joining KSA? Start here.", url: "https://forms.gle/mjsADGCEnfg2wFsB7" },
-  returning: { label: "Returning Member", blurb: "Back for another year — welcome back!", url: "https://forms.gle/84u4dcXTzm3XLP887" },
+  new: { label: "New Member", blurb: "First time joining KSA? Start here.", url: "https://docs.google.com/forms/d/e/1FAIpQLSdXVDVGLJQ5pBX7nA3NvEVbPr_3I7BvEaBAdawevmeUc2zm1g/viewform" },
+  returning: { label: "Returning Member", blurb: "Back for another year — welcome back!", url: "https://docs.google.com/forms/d/e/1FAIpQLSeUg1ny3Z4erbZTmtWKpVWfboPYEnLqgM0RGQzv0ubHQFo_0w/viewform" },
 };
 const JOIN_STEPS = [
   ["01", "Fill out the form", "Takes about two minutes — name, year, and how to reach you."],
@@ -62,7 +62,7 @@ export default function Join() {
             <p className="text-muted" style={{ fontSize: "0.92rem", margin: "16px 0 20px" }}>{f.blurb}</p>
             <div className="jform-mock">
               <div className="jf-head"><span className="jf-logo"><img src={config.PUB + "/images/logo_white.png"} alt="" /></span><div><b>{f.label} Form</b><span>Google Forms · ~2 min</span></div></div>
-              {["Full name", "UVA email", "Year / Major", "How did you hear about KSA?"].map((l) => (
+              {["Full name", "UVA email", "Phone Number", "Year?"].map((l) => (
                 <div className="jf-field" key={l}><label>{l}</label><div className="jf-input" /></div>
               ))}
               <a href={f.url} target="_blank" rel="noreferrer" className="btn" style={{ width: "100%", marginTop: 6 }}>Open the {f.label.toLowerCase()} form {Ico.ext({ width: 16, height: 16 })}</a>

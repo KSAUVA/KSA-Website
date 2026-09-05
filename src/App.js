@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import { initMotion } from "./lib/ui";
 import config from "./config";
 import "./assets/css/theme.css";
+import OfficerLookup from "./pages/OfficerLookup";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -48,6 +49,7 @@ function Shell() {
           <Route path="/links" element={<Links />} />
           <Route path="/families" element={<Families />} />
           <Route path="/pos" element={<Pos />} />
+          <Route path="/roster-check" element={<OfficerLookup />} />
         </Routes>
       </div>
       {!isPos && <Footer />}
