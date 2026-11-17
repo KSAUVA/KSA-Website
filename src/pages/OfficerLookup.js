@@ -74,7 +74,7 @@ const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcZ3z_TTRxjuNr
 const OFFICER_PASSWORD = "KOREA!";
 
 // Minimal CSV parser — handles quoted fields and commas inside quotes.
-// Good enough for this sheet's shape; swap for papaparse if the data
+// Good enough for this sheet's; swap for papaparse if the data
 // gets messier (embedded newlines, etc).
 function parseCSV(text) {
     const rows = [];
