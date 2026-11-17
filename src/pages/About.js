@@ -21,7 +21,7 @@ const ABOUT_PHOTOS = [
 ];
 const FAQ = [
   ["Do I have to be Korean to join?", "Nope! KSA is open to everyone interested in Korean culture, language, food, and community."],
-  ["How do I become a person?", "Hit “Join KSA,” fill out the quick form, and come to a general body meeting. Dues can be paid any time during the semester."],
+  ["How do I become a member?", "Hit “Join KSA,” fill out the quick form, and come to a general body meeting. Dues can be paid any time during the semester."],
   ["How can I stay updated?", "Follow our Instagram, join the mailing list, and check the Events page — we post monthly calendars and weekly reminders."],
   ["What are KSA Families?", "A mentorship system pairing new members with upperclassmen “bigs.” Families bond all year through games, food, and friendly competition."],
 ];
